@@ -5,7 +5,7 @@
 
 우리는 여러가지의 low-level의 프로토콜 명세를 가지고 있습니다.
 
-- [Ethereum Node Records](https://github.com/ethereum/devp2p/blob/master/enr.md)
+- [Ethereum Node Records](https://github.com/Yanison/ethereum_docs/blob/master/ethereum/devp2p/ENR.md)
 - [DNS Node Lists](https://github.com/ethereum/devp2p/blob/master/dnsdisc.md)
 - [Node Discovery Protocol v4](https://github.com/ethereum/devp2p/blob/master/discv4.md)
 - [Node Discovery Protocol v5](https://github.com/ethereum/devp2p/blob/master/discv5/discv5.md)
