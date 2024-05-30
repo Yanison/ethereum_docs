@@ -1,4 +1,4 @@
-# ethereum 황서 번역
+# ethereum p2p 프로토콜 명세 ([원문](https://github.com/ethereum/devp2p/tree/master))
 본 Repository는 이더리움에서 사용되는 P2P 네트워크 프로토콜에 대한 명세들을 담고 있습니다.
 여기서의 이슈 트래커는 프로토콜 변경에 대한 토론을 위한 것이다. 질문이 있을 경우 이슈를 열어주세요.
 프로토콜 레벨의 보안 이슈 또한 중요합니다. 심각한 이슈는 이더리움 재단 바운티 프로그램을 통해 책임감 있게 보고해주세요.
@@ -37,7 +37,7 @@ dev2p 의 이 네트워크 프로토콜은 명세로부터 제공된 기초 정�
 libp2p 프로젝트는 devp2p와 거의 동시에 시작되었고 P2P 모듈 네트워크들을 하나로 구성하는 P2P네트워크 모듈러 집합이 되는것을 추구합니다.
 devp2와 libp2p의 관계에 대한 질문은 상당히 자주 나옵니다.
 
-두개의 프로젝트를 비효하는건 어렵습니다 왜냐하면 그들은 다른 관점과 다른 목표로 설계되었기 때문입니다.
+두개의 프로젝트를 비교하는건 어렵습니다 왜냐하면 그들은 다른 관점과 다른 목표로 설계되었기 때문입니다.
 devp2p는 이더리움의 니즈를 제공하기 위한 시스템적인 정의들을 통합한것입니다.(물론 다른 어플리케이션에도 잘 맞을 수 있습니다.)
 반면 libp2p는 프로그래밍 라이브러리 요소들의 집합체입니다. 특정한 어플리케이션을 서비스하기 위함이 아니란 뜻 입니다.
 
@@ -45,7 +45,6 @@ That said, both projects are very similar in spirit and devp2p is slowly adoptin
 즉, 두 프로젝트는 서로 비슷한 정신을 가지고 있으며 그들이 성숙해져감에 따라 devp2p는 서서히 libp2p의 일부를 채택하고 있습니다.
 
 # Implementations
-devp2p is part of most Ethereum clients. Implementations include:
 devp2p는 이더리움 클라이언트들의 일부분입니다. 구현체들은 다음을 포함합니다.
 
 - C#: Nethermind https://github.com/NethermindEth/nethermind
