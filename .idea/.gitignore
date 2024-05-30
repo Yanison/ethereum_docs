@@ -1,2 +1,4 @@
 .idea
 ethereum_docs.iml
+# GitHub Copilot persisted chat sessions
+/copilot/chatSessions
