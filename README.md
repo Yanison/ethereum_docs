@@ -18,7 +18,6 @@
 - [Light Ethereum Subprotocol (les/4)](https://github.com/ethereum/devp2p/blob/master/caps/les.md)
 - [Parity Light Protocol (pip/1)](https://github.com/ethereum/devp2p/blob/master/caps/pip.md)
 - [Ethereum Witness Protocol (wit/0)](https://github.com/ethereum/devp2p/blob/master/caps/wit.md)
-- 
 
 ## The Mission : what is devp2p?
 
