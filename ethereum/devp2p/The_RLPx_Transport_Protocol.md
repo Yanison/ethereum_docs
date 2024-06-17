@@ -214,6 +214,7 @@ MAC에 대응되는 헤더를 암호화하여 얻은 결과값을 XOR연산하�
     header-mac = keccak256.digest(egress-mac)[:16]
 
 Computing `frame-mac`:
+`frame-mac`연산 : 
 
     egress-mac = keccak256.update(egress-mac, frame-ciphertext)
     frame-mac-seed = aes(mac-secret, keccak256.digest(egress-mac)[:16]) ^ keccak256.digest(egress-mac)[:16]
