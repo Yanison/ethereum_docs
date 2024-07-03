@@ -360,13 +360,13 @@ numerically highest wins, others are ignored.
 -->
 #### Message IDs 
 Message IDs는 ID 0x10 부터 압축되어여 있다고 간주되며(0x00-0x0f 가 "p2p" capability로 예약되어져있습니다.)
-알파벳 순서로 각각 공유된 (동일한 버전, 동일한 이름) capability에 할당됩니다 .
+알파벳 순서대로 각각 공유된 (동일한 버전, 동일한 이름) capability에 할당됩니다.
 Capability 이름은 대소문자를 구분합니다. 공유되지 않는 Capabilities는 무시됩니다.
 만약에 여러개의 버전들이 같은(동일한 이름) capability에 공유되어졌다면, 숫자가 가장 높은 버전이 이깁니다.
 다른것들은 무시됩니다.
 
 ## "p2p" Capability
-
+<!--
 The "p2p" capability is present on all connections. After the initial handshake, both
 sides of the connection must send either [Hello] or a [Disconnect] message. Upon receiving
 the [Hello] message a session is active and any other message may be sent. Implementations
@@ -375,15 +375,27 @@ communicating with a peer of lower version, implementations should try to mimic 
 version.
 
 At any time after protocol negotiation, a [Disconnect] message may be sent.
+-->
+
+"p2p" capability는 모든 연결에서 사용됩니다(present). 초기 헨드쉐이크 이후에, 발신자 수신자 양쪽 연결 모두 [Hello] 또는 [Disconnect] 메시지를 보내야 합니다.
+[Hello] 메시지를 받을때는 세션이 활성화 되고 다른 메시지가 전송될 수 있습니다. 구현에서는 향후 호환성을 위해서 프로토콜 버전의 차이는 무시해야합니다.
+낮은 버전의 peer와 통신할때는 구현부에서 그 버전을 모방해야 합니다.
+
+프로토콜 협상 이후 언제든지 [Disconnect] 메시지를 보낼 수 있습니다.
 
 ### Hello (0x00)
 
 `[protocolVersion: P, clientId: B, capabilities, listenPort: P, nodeKey: B_64, ...]`
 
+<!--
 First packet sent over the connection, and sent once by both sides. No other messages may
 be sent until a Hello is received. Implementations must ignore any additional list elements
 in Hello because they may be used by a future version.
+-->
+첫 패킷은 연결을 통해 보내진 다음에 얀쪽에서 한번씩 보내집니다. 다른 메시지들은 Hello를 받을때까지 보내지면 안됩니다.
+구현에서 Hello에 추가적인 리스트 부분은 무시되어져야 하며 그 이유는 향후 버전에서 사용될 수 있을 여지가 있습니다.
 
+<!--
 - `protocolVersion` the version of the "p2p" capability, **5**.
 - `clientId` Specifies the client software identity, as a human-readable string (e.g.
   "Ethereum(++)/1.0.0").
@@ -393,17 +405,35 @@ in Hello because they may be used by a future version.
   interface that the present connection traverses). If 0 it indicates the client is
   not listening. This field should be ignored.
 - `nodeId` is the secp256k1 public key corresponding to the node's private key.
+-->
+
+- `protocolVersion`은 "p2p" capability의 버전, **5** 입니다.
+- `clientId`는 클라이언트 소프트웨어 식별자이고, 사람이 읽을수 있는 문자열 입니다.(예를들어 "Ethereum(++)/1.0.0")
+- `capabilities`는 지원되는 `capabilities` 리스트이고 그 버전들은 다음과 같습니다.
+    `[[cap1, capVersion1], [cap2, capVersion2], ...]`.
+- `listenPort` (legacy)는 클라이언트가 수신 대기중인 포트를 지정합니다. (현재 연결된 인터페이스에 대한 포트)
+   만약 0이면 쿨러아온트가 수신 대기중이 아님을 나타냅니다. 이 필드는 무시되어야 합니다.
+- `nodeId`는 secp256k1 공개키이고 이는 노드의 개인키에 대응합니다.
+
 
 ### Disconnect (0x01)
 
 `[reason: P]`
-
+<!--
 Inform the peer that a disconnection is imminent; if received, a peer should disconnect
 immediately. When sending, well-behaved hosts give their peers a fighting chance (read:
 wait 2 seconds) to disconnect to before disconnecting themselves.
+-->
 
+Peer에게 연결이 끊어질 예정임을 알립니다. 만약 이 메시지를 받으면, peer는 즉시 연결을 끊어야 합니다.
+이 메시지가 전송될떄, 모범적인 호스트들은 peer들에게 호스트가 먼저 연결을 끊기 전에 대응할 기회를 줍니다.(2초정도)
+
+<!--
 `reason` is an optional integer specifying one of a number of reasons for disconnect:
+-->
+`reason`는 연결을 끊는 이유를 나타내는 정수값이며 다음과 같습니다.
 
+<!--
 | Reason | Meaning                                                      |
 |--------|:-------------------------------------------------------------|
 | `0x00` | Disconnect requested                                         |
@@ -419,23 +449,46 @@ wait 2 seconds) to disconnect to before disconnecting themselves.
 | `0x0a` | Identity is the same as this node (i.e. connected to itself) |
 | `0x0b` | Ping timeout                                                 |
 | `0x10` | Some other reason specific to a subprotocol                  |
+-->
+
+| Reason | Meaning                                |
+|--------|:---------------------------------------|
+| `0x00` | 연결끊기 요청                             |
+| `0x01` | TCP sub-system 에러                     |
+| `0x02` | 프로토콜 위반, (예를들어, 규정외 메시지나 RLP),...      |
+| `0x03` | 불필요한 peers                             |
+| `0x04` | 너무 많은 peers                            |
+| `0x05` | 이미 연결됨                                 |
+| `0x06` | 호환 불가능한 P2P 프로토콜 버전              |
+| `0x07` | Null값을 노드식별자를 받았을때 - 이는 자동으로 무효처리 됩니다. |
+| `0x08` | 클라이언트에서 연결 중단                    |
+| `0x09` | 핸드쉐이크에서 예상치 못한 식별자             |
+| `0x0a` | 식별자가 본인과 같을떄(예를들어 자기 자신한테 연결하는 경우)     |
+| `0x0b` | Ping timeout                           |
+| `0x10` | 서브프로토콜에서 발생한 특정 사유            |
+
 
 ### Ping (0x02)
 
 `[]`
-
+<!--
 Requests an immediate reply of [Pong] from the peer.
+-->
+peer로부터 즉시 [Pong] 응답을 요청합니다.
 
 ### Pong (0x03)
 
 `[]`
 
+<!--
 Reply to the peer's [Ping] packet.
+-->
+
+peer의 [Ping] 패킷에 대한 응답입니다.
 
 # Change Log
-
+<!--
 ### Known Issues in the current version
-
 - The frame encryption/MAC scheme is considered 'broken' because `aes-secret` and
   `mac-secret` are reused for both reading and writing. The two sides of a RLPx connection
   generate two CTR streams from the same key, nonce and IV. If an attacker knows one
@@ -445,18 +498,49 @@ Reply to the peer's [Ping] packet.
   way to perform message authentication but can be considered safe.
 - The frame encoding provides `capability-id` and `context-id` fields for multiplexing
   purposes, but these fields are unused.
+-->
+
+### 최근 버전에서 알려진 이슈
+- 프레임 암호화/MAC 스키마는 '깨진'것으로 간주됩니다. 그 이유는 `aec-secret`과 `mac-secret`는 읽기와 쓰기에서 재사용됩기 때문입니다.
+  RLPx연결에서 수신과 발신 양쪽은 동일한 키, nonce, IV로부터 두개의 CTR 스트림을 생성합니다. 
+  만약에 공격자가 하나의 평문을 알고있다면, 재사용된 키스트림에서 알려지지 않은 평문을 복호화 할 수 있습니다.
+- keccak256 state을 MAC accumulator로 사용하는것과 AES를 MAC 알고리즘으로 사용하는것은 
+  보편적이지 않고 메시지를 인증하기엔 너무 복잡한 방법이고 안전하지 못하다것이 리뷰어의 일반적인 피드백이었습니다.
+- 프레임 인코딩은 `capablity-id`와 `context-id` 필드를 다중화 목적으로 제공하지만, 이 필드들은 사용되지 않습니다.
 
 ### Version 5 (EIP-706, September 2017)
-
+<!--
 [EIP-706] added Snappy message compression.
+-->
+[EIP-706] Snappy 메시지 압축을 추가했습니다.
 
 ### Version 4 (EIP-8, December 2015)
-
+<!--
 [EIP-8] changed the encoding of `auth-body` and `ack-body` in the initial handshake to
 RLP, added a version number to the handshake and mandated that implementations should
 ignore additional list elements in handshake messages and [Hello].
+-->
+[EIP-8]에서 RLP로 초기 핸드쉐이크를 할때 `auth-body`와 `ack-body`에 변경점이 생겼습니다. 
+핸드쉐이크시 버전을 나타내는 번호를 추가하고 구현에서는 핸드쉐이크 메시지와 [Hello]에서 추가적인 리스트 요소를 무시해야 합니다.
 
+
+<!--
 # References
+
+- Elaine Barker, Don Johnson, and Miles Smid. NIST Special Publication 800-56A Section 5.8.1,
+  Concatenation Key Derivation Function. 2017.\
+  URL <https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-56ar.pdf>
+
+- Victor Shoup. A proposal for an ISO standard for public key encryption, Version 2.1. 2001.\
+  URL <http://www.shoup.net/papers/iso-2_1.pdf>
+
+- Mike Belshe and Roberto Peon. SPDY Protocol - Draft 3. 2014.\
+  URL <http://www.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3>
+
+- Snappy compressed format description. 2011.\
+  URL <https://github.com/google/snappy/blob/master/format_description.txt>
+-->
+# 참고자료
 
 - Elaine Barker, Don Johnson, and Miles Smid. NIST Special Publication 800-56A Section 5.8.1,
   Concatenation Key Derivation Function. 2017.\
