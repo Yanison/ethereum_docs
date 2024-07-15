@@ -25,10 +25,11 @@ DNS 기반의 탐색은 [EIP-1459]에서 처음 제안됩니다.
 
 
 ## URL Scheme
-
+<!--
 To refer to a DNS node list, clients use a URL with 'enrtree' scheme. 
 The URL contains the DNS name on which the list can be found as well as the public key that signed the list. 
 The public key is contained in the username part of the URL and is the base32 encoding of the compressed 32-byte binary public key.
+-->
 
 DNS 노드 리스트를 참조하기 위해서는 클라이언트가 `enrtree` 방식을 사용하는 URL을 사용합니다.
 `enrtree`은 Ethereum Node Records tree의 약자로 Ethereum P2P 네트워크에서 노드를 효율적으로 검색을 할 수 있는 시스템입니다.

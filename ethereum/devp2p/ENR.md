@@ -21,9 +21,11 @@ node record의 구성은 다음과 같다.
 Identity scheme는 노드의 고유 식별자를 기반으로 이 주소값을 유도한다. 예를들어
 노드의 기록들을 구성하는 내용들로 해시함수에 입력하여 얻은 값을 주소값으로 사용할 수 있다. 
 
+<!--
 The key/value pairs must be sorted by key and must be unique, i.e. any key may be present
 only once. The keys can technically be any byte sequence, but ASCII text is preferred. Key
 names in the table below have pre-defined meaning.
+-->
 
 key/value 쌍은 key에 의해서 정렬되고 key값들은 반드시 unique해야 한다. 즉 어떤 key도 한번만 나타날 수 있다.
 key들은 기술적으로 어떻게든 byte sequence가 될수 있지만 ASCII 텍스트가 선호된다.
