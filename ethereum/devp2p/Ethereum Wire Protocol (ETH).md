@@ -97,6 +97,7 @@ state of that block.
 블록 바디는 체인 동기화 섹션 같은곳에서 요청되지만 트랜젝션은 실행되지 않고 오직 그들의 '데이터 유효성(data validity)'만 검증됩니다.
 클라이언트는 'pibot block'이라고 불리는 체인의 헤드와 가까운 블록을 선택하고 선택한 블록의 상태를 다운로드 합니다.
 
+<!--
 ### Block Propagation
 
 **Note: after the PoW-to-PoS transition ([The Merge]), block propagation is no longer
@@ -123,7 +124,27 @@ recently relayed to or from each peer.
 
 The reception of a block announcement may also trigger chain synchronization if the block
 is not the immediate successor of the client's current latest block.
+-->
+### 블록전파(Block Propagation)
 
+**참고: PoW 에서 PoS로 전환하고 나서([The Merge]), 블록 전파는 더이상 'eth'프로토콜에서 처리되지 않습니다.
+아래의 내용은 PoW와 PoA (clique) 네트워크에서만 적용됩니다. 블록 전파 메시지 (NewBlock, NewBlockHashes...)는 향후 버전에서 프로토콜에서 제거될 것입니다.**
+
+새로 채굴된 블록들은 모든 노드들에게 전달되어져야 합니다.
+이런 과정은 블록 전파를 통해서 일어납니다, 블록 전파는 2단계의 진행과정을 거칩니다.
+[NewBlock] 알림 메시지가 피어로부터 수신받았을때, 해당 메시지를 받은 클라이언트는 먼저 블록의 basic header 유효성을 검증하고 작업증명값이 유효한지 확인합니다.
+그런 다음에 블록을 연결된 일부 피어에게(small fraction of connected peer) (보통 전체 피어 수의 제곱근) 에 [NewBlock] 메시지를 사용하여 전송합니다.
+
+[NewBlock] 메시지를 수신 받고 헤더 유효성을 체크한 후에, [NewBlock]으로 블록을 수신받은 클라이언트는 블록에 포함된 모든 트랜잭션을 실행해서 본인의 로컬체인에서 블록을 import합니다.
+블록의 'state-root' 해쉬는 반드시 연산된 post state root와 일치해야 합니다. 
+블록이 완전히 처리되고 나서, 유효하다고 판단되면 클라이언트는 [NewBlockHashes] 메시지를 아직 알리지 않은 모든 피어에게 보냅니다.
+만약 다른 피어들이 다른 피어들로부터 [NewBlock]을 통해 블록을 받지 못했다면 나중에 전체 블록을 요청할 수 있습니다.
+
+노드는 최근에 같은 블록을 알린 피어에게 블록알림을 보내지 않습니다. 이는 보통 각 피어로부터 최근에 전달받은 거대간 블록해시 집합을 기억할 수 있기 때문입니다.
+
+블록 알림의 수신은 클라이언트의 최신 블록의 즉각적인 후속 블록이 아닐 경우에 체인 동기화의 트리거가 될 수 있습니다.
+
+<!--
 ### Transaction Exchange
 
 All nodes must exchange pending transactions in order to relay them to miners, which will
@@ -151,6 +172,26 @@ A node should never send a transaction back to a peer that it can determine alre
 of it (either because it was previously sent or because it was informed from this peer
 originally). This is usually achieved by remembering a set of transaction hashes recently
 relayed by the peer.
+-->
+### 트랜젝션 교환(Transaction Exchange)
+모든 노드는 반드시 보류중인 트랜잭션을 교환하여 채굴자들에게 중계해야 하고, 채굴자들은 블록체인에 포함시키기 위해 트랜잭션을 선택합니다.
+클라이언트 구현은 'transaction pool'에서 보류중인 트랜젝션 집합을 계속 추적합니다. 이 트랜젝션 풀은 클라이언트 특정 제한(client-specific
+limits)과 많은 트랜젝션(예를들어 수천개)을 포함할 수 있습니다.
+
+새로운 피어와 연결이 되었을때, 양쪽의 트랜젝션 풀은 동기화되어야 합니다. 초기에, 양쪽 모두 [NewPooledTransactionHashes] 메시지를 보냅니다.
+[NewPooledTransactionHashes]는 교환을 시작하기 위한 로컬풀에 있는 모든 트랜젝션 해쉬를 포함하고 있습니다.
+
+[NewPooledTransactionHashes] 알림을 수신하면, 클라이언트는 수신된 집합(set)을 필터링합니다.
+필터링은 본인의 로컬 풀에 아직 가지고 있지 않은 트랜젝션 해쉬들을 수집하는 것 입니다.
+그런 다음에 [GetPooledTransactions] 메시지를 사용하여 트랜젝션을 요청할 수 있습니다.
+
+새로운 트랜젝션이 클라언트 풀에서 나타나면, [Transactions] 과 [NewPooledTransactionHashes] 메시지를 사용하여 네트워크로 전파해야 합니다.
+헤딩 트랜젝션 메시지는 완전한 트렌젝션 오브젝트를 전달하고 일반적으로 랜덤하게 연결된 일부 피어들에게 보냅니다. 모든 피어는 아니고 주변의 작은 수의 일부 피어들에게 전송합니다.
+다른 모든 피어들은 트랜잭션 해쉬의 알림을 받고 만약 알림 받은것들이 알려져있지 않다면 완전한 트랜젝션을 요청합니다.
+완전한 트랜젝션에 대한 정보를 일부 피어들에게 전파하는 것은 보통 모든 노드가 트랜젝션을 수신받았고 요청할 필요가 없다는것을 보장합니다.
+
+이전에 보내졌거나, 원래 해당 피어에게 정보를 전달받아서 이미 알고있다고 판단한 피어에게 트랜잭션을 다시 보내서는 안됩니다.
+이는 최근에 피어로부터 전달받은 트랜젝션 해쉬 집합을 기억함으로써 달성됩니다.
 
 ### Transaction Encoding and Validity
 
