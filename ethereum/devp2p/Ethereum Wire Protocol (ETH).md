@@ -190,9 +190,9 @@ limits)과 많은 트랜젝션(예를들어 수천개)을 포함할 수 있습�
 다른 모든 피어들은 트랜잭션 해쉬의 알림을 받고 만약 알림 받은것들이 알려져있지 않다면 완전한 트랜젝션을 요청합니다.
 완전한 트랜젝션에 대한 정보를 일부 피어들에게 전파하는 것은 보통 모든 노드가 트랜젝션을 수신받았고 요청할 필요가 없다는것을 보장합니다.
 
-이전에 보내졌거나, 원래 해당 피어에게 정보를 전달받아서 이미 알고있다고 판단한 피어에게 트랜잭션을 다시 보내서는 안됩니다.
+이전에 보내졌거나, 원래 해당 피어에게 정보를 전달받았기 때문에 이미 알고있다고 판단한 피어에게 트랜잭션을 다시 보내지 않습니다.
 이는 최근에 피어로부터 전달받은 트랜젝션 해쉬 집합을 기억함으로써 달성됩니다.
-
+<!--
 ### Transaction Encoding and Validity
 
 Transaction objects exchanged by peers have one of two encodings. In definitions across
@@ -253,7 +253,60 @@ common practice to reject encoded transactions larger than 128 kB.
 Unless noted otherwise, implementations must not disconnect peers for sending invalid
 transactions, and should simply discard them instead. This is because the peer might be
 operating under slightly different validation rules.
+-->
+### 트랜젝션 인코딩과 유효성검증(Transaction Encoding and Validity)
 
+피어들 사이에서 교환된 트랜젝션 오브잭트들은 두가지 타입중 하나의 인코딩을 가지고 있습니다.
+명세서에 전반에 따른 정의에 의하면, 우리는 앞서 말한 두가지 타입의 인코딩중 `txₙ` 식별자를 사용하는 인코딩의 트랜젝션을 참조합니다.
+
+    tx = {legacy-tx, typed-tx}
+
+타입이 지정되지 않았거나 레거시 트랜젝션(legacy transaction)은 RLP 리스트로 표현됩니다.
+
+    legacy-tx = [
+        nonce: P,
+        gas-price: P,
+        gas-limit: P,
+        recipient: {B_0, B_20},
+        value: P,
+        data: B,
+        V: P,
+        R: P,
+        S: P,
+    ]
+
+[EIP-2718] 타입으로 지정된 트랜젝션은 첫번째 바이트 트랜젝션 유형이 (`tx-type`)이고 남은 바이트가 불투명한 타입별 데이터 일때 RLP 바이트 배열로 인코딩됩니다. 
+
+    typed-tx = tx-type || tx-data
+
+
+트랜젝션은 반드시 수신받았을때 유효성을 검증해야 합니다. 유효성 검사는 이더리움 체인 상태에 의존합니다.
+이 명세에서 이런 특수한 유형의 유효성 검증은 로컬풀의 임시 스토리지와 다른 피어들과의 교환을 위해 수용 가능한지에 대한 것이지, 
+트랜젝션이 EVM에 의해서 성공적으로 실행 될 수 있는지에 대한 것이 아닙니다.
+
+트랜젝션은 아래의 규칙에 따라 유효성을 검증합니다. 타입이 지정된 트랜젝션의 인코딩 방법은 불투명한 반면에 
+트랜젝션의 `tx-data`가 `nonsce`,`gas-price`,`gas-limit`의 값을 제공하고 있고, 트랙젝션의 송금인의 계좌가 트랜젝션 서명을 통해서 결정 될 수 있다고 가정합니다.
+
+- 만약 트랜젝션 타입이 지정되어 있다면, `tx-type`은 반드시 구현할때 알려져 있어야 합니다.
+  정의된 트랜젝션 타입은 블록에 포함될 수 있다고 판단되기 전에라도 유효하다고 간주될(may) 수 있습니다.
+- 서명은 체인에서 지원되는 서명방식에 따라 검증되어야 합니다. 타입이 지정된 트랜젝션의 경우, 서명을 다루는 방식은 도입된 EIP 타입에 의해서 정의되어져야 합니다.
+  레거시 트랜젝션의 경우, 활발하게 사용되는 두가지 방식이 있는데 basic `Homestead` 방식과 [EIP-155] 방식입니다.
+- `gas-limit`은 트랜젝션의 'intrinsic gas'를 커버해야 합니다.
+- 서명으로부터 파생된 트랜젝션의 송금인의 계좌는 트랜젝션 발생에 필요한 비용(`gas-limit * gas-price + value`)만큼의 충분한 이더리움 잔액이 있어야 합니다.
+- 트랜젝션의 `nonce`는 송금인의 계좌의 최근 nonce보다 크거나 같아야 합니다.
+- 트랜젝션이 로컬 풀에 포함하는것을 고려할때, 현재 계좌의 논스보다 큰 미래에 발생할 트랜잭션 논스가 얼마나 유효한지, 
+  그리고 얼마 정도의 `nonce gaps`가 수용가능한지 결정하는것은 어떻게 구현하느냐에 따라 다릅니다.
+
+구현하는것은 트랜젝션에 다른 방식의 유효성 검증 규칙을 강제할 수도 있습니다.
+예를 들어 트랜젝션이 128kb보다 큰 사이즈로 인코딩 되는 것을 거부하는것이 일반적인 방식입니다. 
+
+Unless noted otherwise, implementations must not disconnect peers for sending invalid
+transactions, and should simply discard them instead. This is because the peer might be
+operating under slightly different validation rules.
+
+별도로 언급되지 않는 한, 구현할때 반드시 유효하지 않은 트랜젝션을 보내기 위해 피어와 연결을 끊어서는 안되고 대신에 그것들을 단순히 폐기해야 합니다.
+
+<!--
 ### Block Encoding and Validity
 
 Ethereum blocks are encoded as follows:
@@ -368,6 +421,58 @@ verified by computing and comparing the merkle trie hash of the list against the
 `receipts-root` of the block. Since the valid list of receipts is determined by the EVM
 state transition, it is not necessary to define any further validity rules for receipts in
 this specification.
+-->
+
+### 블록 인코딩과 유효성 검사(Block Encoding and Validity)
+
+이더리움 블록은 다음과 같이 인코딩 됩니다.
+
+    block = [header, transactions, ommers]
+    transactions = [tx₁, tx₂, ...]
+    ommers = [header₁, header₂, ...]
+    withdrawals = [withdrawal₁, withdrawal₂, ...]
+    header = [
+        parent-hash: B_32,
+        ommers-hash: B_32,
+        coinbase: B_20,
+        state-root: B_32,
+        txs-root: B_32,
+        receipts-root: B_32,
+        bloom: B_256,
+        difficulty: P,
+        number: P,
+        gas-limit: P,
+        gas-used: P,
+        time: P,
+        extradata: B,
+        mix-digest: B_32,
+        block-nonce: B_8,
+        basefee-per-gas: P,
+        withdrawals-root: B_32,
+    ]
+
+특정 프로토콜 메시지에서 트란젝션과 ommer 리스트는 'block body'라고 불리는 단일 항목으로 같이 전달됩니다. 
+
+    block-body = [transactions, ommers, withdrawals]
+
+블록 헤더의 유효성은 사용되는 컨텍스트에 따라 다릅니다. 단일 블록헤더의 경우, 작업증명 서명 (`mix-digest`, `block-nonce`)의 유효성만 증명 될 수 있습니다.
+헤더가 클라이언트의 로컬체인을 확장하기 위해 사용될때, 또는 다수의 헤더가 체인이 동기화 중에 순차적으로 처리될때, 다음의 규칙들을 따릅니다.
+
+- 헤더는 반드시 블록번호가 연속적이고 각각의 헤더의 `parent-hash`가 이전 헤더의 해시와 일치한 체인에서 형성되어야 합니다.
+- 만약 로컬에 저장된 체인을 확장할때에는, 반드시 `difficulty`, `gas-limit` 그리고 `time`의 값들이 [Yellow Paper]에서 정한 프로토콜 규칙 범위 내에 있는지 검증해야 합니다.
+- `gas-used` 헤더 필드는 반드시 `gas-limit`보다 작거나 같아야 합니다.
+- `basefee-per-gas`는 반드시 [London hard fork]이후 헤더에 명시되어야 합니다. 이전 블록에 대해서는 반드시 제외해야 합니다. 이 규칙은 [EIP-1559]에 의해 추가되었습니다.
+- [The Merge]이후 PoS 블록의 경우, ommer header들이 존재하지 않기 때문에 `ommers-hash`는 반드시 빈 keccak256 해시여야 합니다.
+- `withdrawals-root`는 반드시 [Shanghai fork]이후에는 헤더에 반드시 명시되어야 합니다. 이 필드는 [Shangai fork]이전 블록들에서는 반드시 제외되어야 합니다. 이 규칙은 [EIP-4895]에 의해 추가되었습니다.
+
+완전한 블록의 경우, 블록의 EVM 상태전이에 대한 유효성과, 블록의 (waeker) `data-validty`에 대해 구분해야 합니다.
+상태전이 규칙에 대한 정의는 본 명세에서 다루지는 않습니다. 우리는 즉각적인 [block propagation]을 목적으로 그리고 [state synchroniztion]중에 블록의 유효성 데이터를 요청합니다.
+
+블록의 유효성 데이터를 결정짓는건, 아래의 규칙을 따릅니다. 유효하지 않은 블록을 보내는 피어들과 연결을 끊도록 구형해야합니다.
+
+- 블록 `header`는 반드시 유효해야 합니다.
+- 블록에 포함되어 있는 `transaction`은 블록의 번호에서 체인에 포함되도록 유효해야 합니다.
+  이는 이전에 주어진 트랜젝션 유효성 검사 규칙에 추가적으로, `tx-type`이  블록 숫자에서 허용되는지를 요구하는지를 검증하는것과 트랜젝션 가스의 유효성은 반드시 
 
 ## Protocol Messages
 
