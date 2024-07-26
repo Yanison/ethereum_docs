@@ -710,7 +710,7 @@ block.
 피어가 반드시 알고 있어야할 단일의 완전한 블록을 지정합니다.
 `td`는 블록의 총 난이도를 의미하며, 예를들어 이 블록을 포함한 모등 블록의 난이도 입니다.
 
-
+<!--
 ### NewPooledTransactionHashes (0x08)
 
 `[txtypes: B, [txsize₁: P, txsize₂: P, ...], [txhash₁: B_32, txhash₂: B_32, ...]]`
@@ -733,17 +733,46 @@ To be maximally helpful, nodes should inform peers of all transactions that they
 be aware of. However, nodes should only announce hashes of transactions that the remote
 peer could reasonably be considered not to know, but it is better to return more
 transactions than to have a nonce gap in the pool.
+-->
 
+### NewPooledTransactionHashes (0x08)
+
+`[txtypes: B, [txsize₁: P, txsize₂: P, ...], [txhash₁: B_32, txhash₂: B_32, ...]]`
+
+위 예시의 메시지는 네트워크상에 나타난 하나 이상의 트랜잭션과 블록에 아직 포함되지 않은 트랜잭션을 알립니다.
+메시지의 페이로드는 트랜잭션의 리스트에 대하여 설명하지만 세개의 별도 요소로 인코딩되어 있음을 주목하세요.
+
+`txtypes` 요소는 [transaction types]를 알려주는 바이트 배열입니다.
+다른 두개의 페이로드 요소는 알려진 트랜젝션의 해시값과 사이즈를 참조합니다.
+3개 페이로드 요소 모두 동일한 수의 항목을 포함해야 합니다.
+
+`txsizeₙ`는
+타입이 지정된 트랜잭션의 `tx-type || tx-data`의 바이트 크기나
+그리고 타입이 지정되지 않은 legacy-transaction dml RKP-encoded `legacy-tx`의 크기 처럼
+트랜잭션 타입의 'consensus encoding' 길이를 참조합니다.
+
+<!--
 ### GetPooledTransactions (0x09)
 
 `[request-id: P, [txhash₁: B_32, txhash₂: B_32, ...]]`
 
 This message requests transactions from the recipient's transaction pool by hash.
-
 The recommended soft limit for GetPooledTransactions requests is 256 hashes (8 KiB). The
 recipient may enforce an arbitrary limit on the response (size or serving time), which
 must not be considered a protocol violation.
+-->
 
+
+### GetPooledTransactions (0x09)
+
+`[request-id: P, [txhash₁: B_32, txhash₂: B_32, ...]]`
+
+이 메시지는 해시 값으로 수신자의 트랜잭션 풀로의 트랜잭션을 요청합니다.
+권장되는 GetPooledTransactions 요청의 soft limit은 256 해시 (8 KiB) 입니다.
+수신자는 프로토콜 위반으로 간주되어서는 안되는 응답에 임의의 제한(가령 가령 크기나 서비스 시간에)을 강제할 수 있습니다.
+
+
+<!--
 ### PooledTransactions (0x0a)
 
 `[request-id: P, [tx₁, tx₂...]]`
@@ -763,9 +792,26 @@ to refuse serving it via PooledTransactions. This situation can arise when the t
 is included in a block (and removed from the pool) in between the announcement and the
 request.
 
-A peer may respond with an empty list iff none of the hashes match transactions in its
+A peer may respond with an empty list if none of the hashes match transactions in its
 pool.
+-->
 
+### PooledTransactions (0x0a)
+
+`[request-id: P, [tx₁, tx₂...]]`
+
+GetPooledTransactions에 대한 응답메시지입니다.
+로컬풀의 트랜잭션 요청을 반환합니다.
+위 예시에서 볼 수 있는 메시지 리스트의 항목들은 주요 이더리움 명세에서 설명된 형식의 트랜잭션입니다.
+
+명세에 설명된 트랜잭션은 요청 순서와 같아야 하지만 사용할 수 없는 트랜잭션을 건너뛰는건 괜찮습니다.
+건너 뛸 경우에, 만약 응답 사이즈가 제한에 도달하면, 요청자들은 어떤 해쉬들(마지막으로 반환됐던 트랜젝션 이후의 모든 트랜잭션들)이 다시 요청하는지
+그리고 어떤 해쉬들이 사용할 수 없는지(마지막으로 반환된 트랜잭션 이전의 모든 갭들)을 알 수 있습니다.
+
+피어는 만약 본인의 풀에 잇는 트랜잭션과 매치되는 해쉬가 없다면 빈 리스트로 응답할 수 있습니다.
+
+
+<!--
 ### GetReceipts (0x0f)
 
 `[request-id: P, [blockhash₁: B_32, blockhash₂: B_32, ...]]`
@@ -773,7 +819,17 @@ pool.
 Require peer to return a Receipts message containing the receipts of the given block
 hashes. The number of receipts that can be requested in a single message may be subject to
 implementation-defined limits.
+-->
 
+### GetReceipts (0x0f)
+
+`[request-id: P, [blockhash₁: B_32, blockhash₂: B_32, ...]]`
+
+피어에게 주어진 블록해쉬에 대한 Receipts을 포함하여 Receipts message 반환하도록 요청합니다.
+단일메시지에서 요청될 수 있는 Receipts의 수는 구현할때 정의된 제한에 따라 달라질 수 있습니다.
+
+
+<!--
 ### Receipts (0x10)
 
 `[request-id: P, [[receipt₁, receipt₂], ...]]`
@@ -783,22 +839,51 @@ in the response list corresponds to a block hash of the GetReceipts request, and
 contain the complete list of receipts of the block.
 
 The recommended soft limit for Receipts responses is 2 MiB.
+-->
+
+### Receipts (0x10)
+
+`[request-id: P, [[receipt₁, receipt₂], ...]]`
+
+GetReceipts 요청에 대한 응답입니다.
+요청된 블록 receipt을 제공합니다.
+응답 할때 리스트의 각각의 요소는 GetReceipts를 요청받을때 받은 블록해쉬에 대응되는 요소들이며, 블록에 대한 완전한 receipt 리스트 를 포함해야 합니다.
+
+권장되는 Receipts 응답의 soft limit은 2 MiB 입니다.
+
 
 ## Change Log
 
+
+<!--
 ### eth/68 ([EIP-5793], October 2022)
 
 Version 68 changed the [NewPooledTransactionHashes] message to include types and sizes of
 the announced transactions. Prior to this update, the message payload was simply a list of
 hashes: `[txhash₁: B_32, txhash₂: B_32, ...]`.
+-->
 
+### eth/68 ([EIP-5793], October 2022)
+
+Version 68에서 [NewPooledTransactionHashes] 메시지를 알려진 트랜젝션의 사이즈와 타입을 포함하도록 변경했습니다.
+업데이트에서 중요한 점은, 메시지의 페이소드는 단순히 해시의 리스트였습니다: `[txhash₁: B_32, txhash₂: B_32, ...]`.
+
+
+<!--
 ### eth/67 with withdrawals ([EIP-4895], March 2022)
 
 PoS validator withdrawals were added by [EIP-4895], which changed the definition of block
 headers to include a `withdrawals-root`, and block bodies to include the `withdrawals`
 list. No new wire protocol version was created for this change, since it was only a
 backwards-compatible addition to the block validity rules.
+-->
 
+### eth/67 with withdrawals ([EIP-4895], March 2022)
+Pos validator withdrawals가 [EIP-4895]에 따라 추가되었으며, 블록 헤더의 정의가 `withdrawals-root`를 포함하도록 변경되었고,
+block bodies는 `withdrawals`를 포함하도록 변경되었습니다. 오로지 블록의 유효성 검증 룰이 이전 버전들과 호활수 있도록 하는 추가 사항이었기 때문에
+해당 변경에서 어떤 새로운 와이어 프로토콜 버전도 생성되지 않았습니다.
+
+<!--
 ### eth/67 ([EIP-4938], March 2022)
 
 Version 67 removed the GetNodeData and NodeData messages.
@@ -807,20 +892,47 @@ Version 67 removed the GetNodeData and NodeData messages.
   `[request-id: P, [hash₁: B_32, hash₂: B_32, ...]]`
 - NodeData (0x0e)
   `[request-id: P, [value₁: B, value₂: B, ...]]`
+-->
 
+### eth/67 ([EIP-4938], March 2022)
+
+Version 67에서 GetNodeData 와 NodeData 메시지가 삭제되었습니다.
+
+- GetNodeData (0x0d)
+  `[request-id: P, [hash₁: B_32, hash₂: B_32, ...]]`
+- NodeData (0x0e)
+  `[request-id: P, [value₁: B, value₂: B, ...]]`
+
+
+<!--
 ### eth/66 ([EIP-2481], April 2021)
 
 Version 66 added the `request-id` element in messages [GetBlockHeaders], [BlockHeaders],
 [GetBlockBodies], [BlockBodies], [GetPooledTransactions], [PooledTransactions],
 GetNodeData, NodeData, [GetReceipts], [Receipts].
+-->
 
+### eth/66 ([EIP-2481], April 2021)
+
+Verseion 66에서 `request-id`요소를 [GetBlockHeaders], [BlockHeaders],
+[GetBlockBodies], [BlockBodies], [GetPooledTransactions], [PooledTransactions],
+GetNodeData, NodeData, [GetReceipts], [Receipts] 에 추가하였습니다.
+
+<!--
 ### eth/65 with typed transactions ([EIP-2976], April 2021)
 
 When typed transactions were introduced by [EIP-2718], client implementers decided to
 accept the new transaction and receipt formats in the wire protocol without increasing the
 protocol version. This specification update also added definitions for the encoding of all
 consensus objects instead of referring to the Yellow Paper.
+-->
 
+### eth/65 with typed transactions ([EIP-2976], April 2021)
+
+타입이 지정된 트랜젝션이 [EIP-2718]에서 소개되었을때, 클라이언트 구현은  새로운 프로토콜 버전의 증가 없이 wire protocol에서 새로운 트랜젝션과 repeipt 형식을 수용하기로 결정했습니다.
+본 명세의 업데이트는 또한 황서를 참조하는 대신 모든 합의 객체의 인코딩에 대한 정의를 추가했습니다.
+
+<!--
 ### eth/65 ([EIP-2464], January 2020)
 
 Version 65 improved transaction exchange, introducing three additional messages:
@@ -831,18 +943,44 @@ transaction sizes increased on the Ethereum mainnet, the network bandwidth used 
 transaction exchange became a significant burden on node operators. The update reduced the
 required bandwidth by adopting a two-tier transaction broadcast system similar to block
 propagation.
+-->
 
+### eth/65 ([EIP-2464], January 2020)
+
+Version 65는 트랜젝션 교환을 개선하고, 다음의 세가지의 메시지 형식을 추가로 소개하였습니다.
+[NewPooledTransactionHashes], [GetPooledTransactions], 그리고 [PooledTransactions] 입니다.
+
+version 65에서 주요사항은, 피어들은 항상 완전한 트랜젝션 객체들을 서로 교환해야 합니다.
+이더리움 메인넷에서 활동과 트랜젝션 사이즈가 증가하면서, 트랜젝션 교환에서 사용하는 네트워크 대역폭(bandwitdh)이 노드 운영자에게 상당한 부하가 되었기 때문입니다.
+본 업데이트는 블록전파와 유사한 두 단계(two-tire)의 트랜젝션 브로드캐스트 적용함으로써 요구되는 대역폭을 줄였습니다.
+
+<!--
 ### eth/64 ([EIP-2364], November 2019)
 
 Version 64 changed the [Status] message to include the [EIP-2124] ForkID. This allows
 peers to determine mutual compatibility of chain execution rules without synchronizing the
 blockchain.
+-->
 
+### eth/64 ([EIP-2364], November 2019)
+
+Verseion 64에서 [Status] 메시지를 [EIP-2124] ForkID를 포함하도록 변경했습니다.
+이 변경사항은 피어들이 블록페인 동기화 없이 체인 운용 규칙의 상호 호환성을 결정할 수 있도록 합니다.
+
+
+<!--
 ### eth/63 (2016)
 
 Version 63 added the GetNodeData, NodeData, [GetReceipts] and [Receipts] messages
 which allow synchronizing transaction execution results.
+-->
 
+### eth/63 (2016)
+
+Version 63에서 GetNodeData, NodeData, [GetReceipts] 그리고 [Receipts] messages를 추가하였습니다.
+이 메시지들은 트랜젝션 실행 결과들을 동기화 할 수 있도록 합니다.
+
+<!--
 ### eth/62 (2015)
 
 In version 62, the [NewBlockHashes] message was extended to include block numbers
@@ -858,15 +996,46 @@ Previous encodings of the reassigned/removed message codes were:
 - GetBlocks (0x05): `[hash₁: B_32, hash₂: B_32, ...]`
 - Blocks (0x06): `[[header, transactions, ommers], ...]`
 - BlockHashesFromNumber (0x08): `[number: P, max-blocks: P]`
+-->
 
+### eth/62 (2015)
+
+version 62에서 [NewBlockHashes] 메시지는 알려진 해쉬들과 동시에 블록의 번호를 포함하도록 확장 되었었습니다.
+[Status]의 블록 번호는 제거되었습니다.
+Messages
+GetBlockHashes (0x03), BlockHashes (0x04), GetBlocks (0x05) 그리고 Blocks (0x06) 메시지들은
+블록 헤더와 바디를 가져오는 메시지로 대체되었습니다.
+BlockHashesFromNumber (0x08) 메시지는 제거되었습니다.
+
+<!--
 ### eth/61 (2015)
 
 Version 61 added the BlockHashesFromNumber (0x08) message which could be used to request
 blocks in ascending order. It also added the latest block number to the [Status] message.
+-->
 
+### eth/61 (2015)
+
+Version 61에서 BlockHashesFromNumber (0x08) 메시지를 추가하였습니다.
+이 메시지는 블록들을 오름차순으로 요청하는데 사용할 수 있었습니다.
+또한 [Status]메시지에 최신 블록 번호를 추가하였습니다.
+
+<!--
 ### eth/60 and below
 
 Version numbers below 60 were used during the Ethereum PoC development phase.
+
+- `0x00` for PoC-1
+- `0x01` for PoC-2
+- `0x07` for PoC-3
+- `0x09` for PoC-4
+- `0x17` for PoC-5
+- `0x1c` for PoC-6
+-->
+
+### eth/60 and below
+
+60이하의 버전 번호는 이더리움 PoC 개발 단계에서 사용되었습니다.
 
 - `0x00` for PoC-1
 - `0x01` for PoC-2
