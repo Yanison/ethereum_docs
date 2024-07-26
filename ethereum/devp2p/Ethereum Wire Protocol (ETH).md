@@ -475,13 +475,17 @@ this specification.
   이는 이전에 주어진 트랜젝션 유효성 검사 규칙에 추가적으로, `tx-type`이  블록 숫자에서 허용되는지를 요구하는지를 검증하는것과 트랜젝션 가스의 유효성은 반드시 
 
 ## Protocol Messages
-
+<!--
 In most messages, the first element of the message data list is the `request-id`. For
 requests, this is a 64-bit integer value chosen by the requesting peer. The responding
 peer must mirror the value in the `request-id` element of the response message.
+-->
+
+대부분의 메시지에서, 메시지 데이터 리스트의 첫번쨰 요소는 `request-id` 입니다.
+요청의 경우 요청 peer에서 선택한 64-bit의 정수값입니다. 응답하는 peer는 반드시 응답메시지 요소에서 `request-id` 값을 반드시 반영해야 합니다.
 
 ### Status (0x00)
-
+<!--
 `[version: P, networkid: P, td: P, blockhash: B_32, genesis: B_32, forkid]`
 
 Inform a peer of its current state. This message should be sent just after the connection
@@ -509,20 +513,74 @@ for transaction replay prevention.
 | 5  | Goerli testnet            |
 
 For a community curated list of chain IDs, see <https://chainid.network>.
+-->
 
+`[version: P, networkid: P, td: P, blockhash: B_32, genesis: B_32, forkid]`
+
+피어의 최근 상태를 알려줍니다. 위의 메시지는 연결이 성립된 직후에 보내지고 어떤 eth protocol 메시지보다도 우선시 해야합니다.
+
+- `version`: the current protocol version
+- `networkid`: integer identifying the blockchain, see table below
+- `td`: total difficulty of the best chain. Integer, as found in block header.
+- `blockhash`: the hash of the best (i.e. highest TD) known block
+- `genesis`: the hash of the genesis block
+- `forkid`: An [EIP-2124] fork identifier, encoded as `[fork-hash, fork-next]`.
+
+- `version`: 최근 프로토콜의 버전을 나타냅니다.
+- `networkid`: 정수로 식별된 블록체인입니다, 아래의 테이블을 참조하세요.
+- `td`: 체인의 최고 난이도를 의미합니다. 블록 헤더에서 찾을 수 있는 정수입니다.
+- `blockhash`:  현재까지 알려진 블록 중에서 총 난이도가 높은 블록입니다.
+- `genesis`: 제네시스 블록의 해시입니다.
+- `forkid`: [EIP-2124] fork 식별자입니다, `[fork-hash, fork-next]`로 인코딩됩니다.
+
+This table lists common Network IDs and their corresponding networks. Other IDs exist
+which aren't listed, i.e. clients should not require that any particular network ID is
+used. Note that the Network ID may or may not correspond with the EIP-155 Chain ID used
+for transaction replay prevention.
+
+아래의 테이블은 일반적인 네트워크 아이디와 아이디에 대응하는 네트워크를 나열한 테이블입니다.
+테이블에 없는 ID들은, 예를들어 클라이언트가 특정 네트워크 ID를 특정하여 사용하지 않는 ID들 입니다.
+네트워크 ID는 EIP-155 Chain ID와 일치할 수도 있고 그렇지 않을 수도 있습니다.
+
+| ID | chain                     |
+|----|---------------------------|
+| 0  | Olympic (disused)         |
+| 1  | Frontier (now mainnet)    |
+| 2  | Morden testnet (disused)  |
+| 3  | Ropsten testnet (disused) |
+| 4  | Rinkeby testnet (disused) |
+| 5  | Goerli testnet            |
+
+커뮤니티가 관리하는 체인 ID 목록은 <https://chainid.network>를 참조하세요.
+
+<!--
 ### NewBlockHashes (0x01)
 
 `[[blockhash₁: B_32, number₁: P], [blockhash₂: B_32, number₂: P], ...]`
 
 Specify one or more new blocks which have appeared on the network. To be maximally
-helpful, nodes should inform peers of all blocks that they may not be aware of. Including
-hashes that the sending peer could reasonably be considered to know (due to the fact they
-were previously informed of because that node has itself advertised knowledge of the
-hashes through NewBlockHashes) is considered bad form, and may reduce the reputation of
+helpful, nodes should inform peers of all blocks that they may not be aware of. 
+Including hashes that the sending peer could reasonably be considered to know 
+(due to the fact they were previously informed of because that node has itself advertised knowledge of the 
+hashes through NewBlockHashes) 
+is considered bad form, and may reduce the reputation of
 the sending node. Including hashes that the sending node later refuses to honour with a
 proceeding [GetBlockHeaders] message is considered bad form, and may reduce the reputation
 of the sending node.
+-->
 
+### NewBlockHashes (0x01)
+
+`[[blockhash₁: B_32, number₁: P], [blockhash₂: B_32, number₂: P], ...]`
+
+네트워크에 나타난 하나 이상의 새로운 블록을 지정합니다. 최대한 도움이 되기 위해서, 노드들은 피어들에게 알려지지 않은 모든 블록들을 알려주어야 합니다.
+타당한 이유로 발신하는 피어가 이미 알고 있다고 간주될 수 있는 해쉬를 포함하는 것은
+(노드가 NewBlockHashes 통하셔 정보를 알고 있다고 알려진 이유로 피어들이 사전에 통보 받았기 때문에)
+좋지 않은 방법이며 발신한 노드의 평판을 저하시킬 수 있습니다.
+발신하는 노드가 이후 [GetBlockHeaders] 메시지를 통해 제공하기를 거부하는 해쉬들을 포함하는 것도 좋지 않은 방법이며 발신하는 노드의 평판을 저하시킬 수 있습니다.
+
+
+<!--
 ### Transactions (0x02)
 
 `[tx₁, tx₂, ...]`
@@ -536,16 +594,48 @@ Nodes must not resend the same transaction to a peer in the same session and mus
 relay transactions to a peer they received that transaction from. In practice this is
 often implemented by keeping a per-peer bloom filter or set of transaction hashes which
 have already been sent or received.
+-->
+
+### Transactions (0x02)
+
+`[tx₁, tx₂, ...]`
+
+피어가 자신의 트랜젝션 큐에 반드시 포함해야할 하는 트랜잭션을 지정합니다.
+큐의 항목은 주요 이더리움 명세 설명된 형식의 트랜젝션입니다. 트랜젝션 메시지는 반드시 최소한 하나의 (새로운) 트랜젝션을 포함해야 합니다.
+빈 트랜젝션 메시지는 권장되지 않으며 연결을 끊을 수 있습니다.
+
+노드들은 반드시 같은 트랜젝션을 같은 세션에 있는 피어에게 재전송해야 하고 그 트랜젝션을 받은 피어에게는 전송하지 말아야합니다.
+이는 피어마다 bloom filter를 유지하거나 이미 전송되어졌거나 발신된 트랜잭션 해쉬들의 집합 을 유지하기위해 실제로 이런식으로 자주 구현됩니다.
+
+<!--
+### GetBlockHeaders (0x03)
+
+`[request-id: P, [startblock: {P, B_32}, limit: P, skip: P, reverse: {0, 1}]]`
+
+Require peer to return a BlockHeaders message. 
+The response must contain a number of block headers, 
+of rising number when `reverse` is `0`, 
+falling when `1`, 
+`skip` blocks apart,
+beginning at block `startblock` (denoted by either number or hash) in the canonical chain,
+and with at most `limit` items.
+-->
 
 ### GetBlockHeaders (0x03)
 
 `[request-id: P, [startblock: {P, B_32}, limit: P, skip: P, reverse: {0, 1}]]`
 
-Require peer to return a BlockHeaders message. The response must contain a number of block
-headers, of rising number when `reverse` is `0`, falling when `1`, `skip` blocks apart,
-beginning at block `startblock` (denoted by either number or hash) in the canonical chain,
-and with at most `limit` items.
+BlockHeaders 메시지를 반환하도록 피어에게 요청합니다.
+응답은 다음 조건을 만족하는 여러 개의 블록헤더를 포함해야 합니다.
+- `reverse: {0, 1}` : `0`일때는 오름차순, `1`일때는 내림차순을.
+- `skip` : 블록을 건너뛰는것을 의미, 지정된 숫자 만큼 블록을 건너뛰라는 의미입니다.
+- `startblock` : 정규 체인에서 블록 `startblock`에서 시작하는 블록 헤더를 나타냅니다.
+- `limit` : 최대 `limit` 항목을 포햄해야 합니다.
 
+즉 `skip`의 수 만큼 블록을 건너 뛰고, `startblock` 에서 명시된 시작할 블록을 선택하고, `limit` 만큼의 블록 헤더를
+`reverse`에 명시된 대로 오름차순 혹은 내림차순으로 반환해야 합니다.
+
+<!--
 ### BlockHeaders (0x04)
 
 `[request-id: P, [header₁, header₂, ...]]`
@@ -555,14 +645,34 @@ may be empty if none of the requested block headers were found. The number of he
 can be requested in a single message may be subject to implementation-defined limits.
 
 The recommended soft limit for BlockHeaders responses is 2 MiB.
+-->
 
+### BlockHeaders (0x04)
+
+`[request-id: P, [header₁, header₂, ...]]`
+
+GetBlockHeaders의 응답이며, 요청된 헤더를 포합합니다.
+요청된 헤더 리스트는 요청된 블록헤더가 없는경우 비어있을 수 있습니다.
+단일 메시지에서 요철될 수 있는 헤더의 수는 구현할때 정의된 제한에 따라 달라질 수 있습니다.
+
+권장되는 BlockHeaders 응답의 크기의 soft limit은 2 MiB 입니다.
+
+<!--
 ### GetBlockBodies (0x05)
 
 `[request-id: P, [blockhash₁: B_32, blockhash₂: B_32, ...]]`
 
 This message requests block body data by hash. The number of blocks that can be requested
 in a single message may be subject to implementation-defined limits.
+-->
 
+### GetBlockBodies (0x05)
+
+`[request-id: P, [blockhash₁: B_32, blockhash₂: B_32, ...]]`
+
+이 메시지는 해시로 블록 바디 데이터를 요청합니다. 단일 메시지에서 요청될 수 있는 블록의 수는 구현할때 정의된 제한에 따라 달라질 수 있습니다.
+
+<!--
 ### BlockBodies (0x06)
 
 `[request-id: P, [block-body₁, block-body₂, ...]]`
@@ -571,7 +681,19 @@ This is the response to GetBlockBodies. The items in the list contain the body d
 requested blocks. The list may be empty if none of the requested blocks were available.
 
 The recommended soft limit for BlockBodies responses is 2 MiB.
+-->
 
+### BlockBodies (0x06)
+
+`[request-id: P, [block-body₁, block-body₂, ...]]`
+
+GetBlockBodies에 대한 응답입니다. 리스트의 요소들은 요청된 블록의 바디 데이터를 포함합니다.
+요청된 블록들이 모두 가용성이 없을때 리스트는 비어있을 수 있습니다.
+
+BlockBodies 응답의 권장되는 soft limit은 2 MiB 입니다.
+
+
+<!--
 ### NewBlock (0x07)
 
 `[block, td: P]`
@@ -579,6 +701,15 @@ The recommended soft limit for BlockBodies responses is 2 MiB.
 Specify a single complete block that the peer should know about. `td` is the total
 difficulty of the block, i.e. the sum of all block difficulties up to and including this
 block.
+-->
+
+### NewBlock (0x07)
+
+`[block, td: P]`
+
+피어가 반드시 알고 있어야할 단일의 완전한 블록을 지정합니다.
+`td`는 블록의 총 난이도를 의미하며, 예를들어 이 블록을 포함한 모등 블록의 난이도 입니다.
+
 
 ### NewPooledTransactionHashes (0x08)
 
