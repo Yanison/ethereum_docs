@@ -6,6 +6,7 @@
  
 Ethereum Node Records 는 [EIP-778]에서 처음 제안되었다.
 
+
 ## Record Structure
 
 node record의 구성은 다음과 같다.
@@ -18,8 +19,8 @@ node record의 구성은 다음과 같다.
 
 좀 더 자세히 말하자면 분산 네트워크에서 각 노드들은 자신의 고유의 주소값을 가져야 하는데 
 이 고유 주소는 분산 해시테이블(DHT)에서 데이터 저장 위치를 결정하는데 사용된다.
-Identity scheme는 노드의 고유 식별자를 기반으로 이 주소값을 유도한다. 예를들어
-노드의 기록들을 구성하는 내용들로 해시함수에 입력하여 얻은 값을 주소값으로 사용할 수 있다. 
+Identity scheme는 노드의 고유 식별자를 기반으로 이 주소값을 유도한다. 
+예를들어 노드의 기록들을 구성하는 내용들로 해시함수에 입력하여 얻은 값을 주소값으로 사용할 수 있다. 
 
 <!--
 The key/value pairs must be sorted by key and must be unique, i.e. any key may be present
@@ -30,18 +31,6 @@ names in the table below have pre-defined meaning.
 key/value 쌍은 key에 의해서 정렬되고 key값들은 반드시 unique해야 한다. 즉 어떤 key도 한번만 나타날 수 있다.
 key들은 기술적으로 어떻게든 byte sequence가 될수 있지만 ASCII 텍스트가 선호된다.
 아래의 테이블은 미리 정의된 의미를 가진 key들을 나타낸다.
-
-| Key         | Value                                      |
-|:------------|:-------------------------------------------|
-| `id`        | name of identity scheme, e.g. "v4"         |
-| `secp256k1` | compressed secp256k1 public key, 33 bytes  |
-| `ip`        | IPv4 address, 4 bytes                      |
-| `tcp`       | TCP port, big endian integer               |
-| `udp`       | UDP port, big endian integer               |
-| `ip6`       | IPv6 address, 16 bytes                     |
-| `tcp6`      | IPv6-specific TCP port, big endian integer |
-| `udp6`      | IPv6-specific UDP port, big endian integer |
-
 
 | Key         | Value                                      |
 |:------------|:-------------------------------------------|
@@ -61,16 +50,20 @@ key들은 기술적으로 어떻게든 byte sequence가 될수 있지만 ASCII �
 Big endian과 반대되는 방식은 Little endian도 있는데 이 두가지 방식은 프로세서 아키텍처나 네트워크 프로토콜에서
 데이터를 해석하는 방식에 따라 사용된다.
 
+<!--
 All keys except `id` are optional, including IP addresses and ports. A record without
 endpoint information is still valid as long as its signature is valid. If no `tcp6` /
 `udp6` port is provided, the `tcp` / `udp` port applies to both IP addresses. Declaring
 the same port number in both `tcp`, `tcp6` or `udp`, `udp6` should be avoided but doesn't
 render the record invalid.
+-->
 
 모든 키는 ip주소와 포트를 포함해 `id`를 옵션으로 가진다. 
 하나의 노드에서 엔드포인트 정보가 없어도 그것의 서명이 유효다면 여전히 유효하다.
 만약 `tcp6`/`udp6` 포트가 제공되더라도, `tcp6`/`udp6` 포트는 두개의 IP 주소에 모두 적용된다.
-`tcp`,'tcp6' 또는 `udp`,`udp6`에 같은 포트 숫자가 선언되는것은 지양해야 하지만 레코드 자체를 유효하지 않게 만들지는 않는다.
+`tcp`,`tcp6` 또는 `udp`,`udp6`에 같은 포트 숫자가 선언되는것은 지양해야 하지만 레코드 자체를 유효하지 않게 만들지는 않는다.
+
+
 
 ### RLP Encoding
 
@@ -97,17 +90,18 @@ RLP의 주요 목표는 임이의 데이터 구조를 효율적으로 인코딩�
 구현체들은 [URL-safe base64 alphabet] 사용하고 패딩 문자를 생략해야 한다.
 
 ### "v4" Identity Scheme
-
+<!--
 This specification defines a single identity scheme to be used as the default until other
 schemes are defined by further EIPs. The "v4" scheme is backwards-compatible with the
 cryptosystem used by Node Discovery v4.
+-->
 
 이 명세는 단일 identity scheme를 정의하는데 다른 schemes들이 이후 EIPs로 정의되어질 때 까지 기본으로 사용된다.
 `v4` shceme는 Node Discovery v4에서 사용되는 암호 시스템과 호환된다.
 
 *[Node Discovery Protocol v4](https://github.com/ethereum/devp2p/blob/master/discv4.md)<br>
-이더리움 노드들에 대한 정보를 저장하는 Kademlia와 유사한 DHT(Distributed Hash Table), 분산 해쉬테이블이다.
-Kademlia 구조는 노드의 분산 인덱스와 low diameter 토플로지 구조를 얻는 효율적인 방법이기 때문에 선택되었다. 
+' 이더리움 노드들에 대한 정보를 저장하는 Kademlia와 유사한 DHT(Distributed Hash Table), 분산 해쉬테이블이다.
+Kademlia 구조는 노드의 분산 인덱스와 low diameter 토플로지 구조를 얻는 효율적인 방법이기 때문에 선택되었다. ' 
 
 - "v4" Identity scheme 에서 `content`를 서명하기 위해서 keccak256 해시 함수(EVM에서 사용되는)를 적용한다.
   그리고 해쉬값의 서명을 생성한다. 64-byte의 서명은 `r` 과 `s` 서명값으로 concatenation으로 인코딩된다.
@@ -115,12 +109,11 @@ Kademlia 구조는 노드의 분산 인덱스와 low diameter 토플로지 구�
   *concatenation : 문자열이나 데이터를 하나로 연속된 형태로 만드는 것을 의미.
 - 레코드를 검증하기 위해서 서명이 레코드의 "secp256k1" key/value 쌍으로 공개키가 생성되어졌는지 확인해야 한다.
 *secp256k1 : 특정 타원 곡선의 알고리즘 이름인데, 특정한 수학적 곡선 기반으로 한 공개키 암호화 방식이다. 암호화폐의 디지털 서명및 키 생성에 사용된다.
-
-  `keccak256(x || y)`. Note that `x` and `y` must be zero-padded up to length 32.
 - 노드 주소를 유도하기위해 압축되지 않은 공개키의 keccak256 해쉬를 취한다. 즉 `keccak256(x || y)` 이다.
-  `x` 와 `y`는 길이가 32byte여야 하며 32byte보다 짧을경오 0을 추가하여 패딩한다.
+  `x` 와 `y`는 길이가 32byte여야 하며 32byte보다 짧을경우 0을 추가하여 패딩한다.
 * x || y : x와 y를 연결한 것을 의미한다. (concatenation)
-* 
+
+
 ## Rationale
 
 The format is meant to suit future needs in two ways:
@@ -145,7 +138,7 @@ behind NAT while IPv6 traffic—if supported—is directly routed to the same ho
 both address types ensures a node is reachable from IPv4-only locations and those
 supporting both protocols.
 
-아마 글을 읽는 당신은 IP주소와 포트번호와 연관하여 미리 정의된 키들이 왜 이렇게 많이 필요한지 의문이 들것입니다.
+아마 IP주소와 포트번호와 연관하여 미리 정의된 키들이 왜 이렇게 많이 필요한지 의문이 들것입니다.
 이러한 필요는 주거 및 모바일 네트워크 설정들이 NAT 뒤에 IPv4를 배치하기 때문에 생겨날 수 있습니다.
 좀 더 자세하게 설명하자면 IPv4는 NAT 뒤에 배치하는데 NAT는 여러 장치가 공용 인터넷에 하나의 공용 IP 주소로 접근할 수 있는
 기술입니다. 반면 IPv6은 더 많은 IP주소로 제공하며, NAT 없이도 각 장치에 고유한 IP주소를 부여할 수 있습니다.
@@ -188,5 +181,44 @@ RLP 구조의 레코드는 다음과 같습니다 :
 
 
 # 요약
-Ethereum Node Records은 P2P 연결 정보를 위한 오픈 포멧인데 JSON 처럼 생각하면 되겠다.
-하나의 노드에는 IP주소와 포트번호같은 정보들을 담고있는데 이정보들은 RLP(Recursive Length Prefix)규칙에 따라 인코딩 된디.
+## Ethereum Node Records
+- p2p 연결 정보를 위한 오픈 포멧
+- 노드의 네트워크의 엔드포인트를 담고있음
+- 그리고 다른 노드들과 연결여부를 결정하는 정보들을 담고 있음
+- [EIP-778]에서 처음 제안되었다.
+## Record Structure
+- `signature` : 레코드 내용의 암호화 서명
+- 하나의 레코드 서명은 *identity scheme* 에 따라 검증되고 생성된다. *identity scheme* 는 DHT에서 노드의 주소를 도출하는 담당을한다. 노드 기록들을 구성하는 내용으로 해시함수에 입력하여 얻은 값을 주소값으로 사용할 수 있다.
+- `seq`: 64-bit의 unsigned integer인 시퀀스 번호. 레코드 내용이 변경,재발행 될 때마다 증가시키는 번호.
+-  레코드의 나머지 구성요소는 임의의 키/값 쌍으로 이루어져있다. 아래는 미리 정의된 key/value 쌍을 나타낸다.
+
+| Key         | Value                                      |
+|:------------|:-------------------------------------------|
+| `id`        | identity scheme의 이름, e.g. "v4"           |
+| `secp256k1` | 33 bytes의 secp256k1로 압축된 공개키          |
+| `ip`        | IPv4 주소, 4 bytes                          |
+| `tcp`       | TCP port, big endian integer               |
+| `udp`       | UDP port, big endian integer               |
+| `ip6`       | IPv6 address, 16 bytes                     |
+| `tcp6`      | IPv6-specific TCP port, big endian integer |
+| `udp6`      | IPv6-specific UDP port, big endian integer |
+
+## RLP Encoding(Recursive Length Prefix)
+- 이더리움과 같은 블록체인 시스템에서 데이터를 인코딩 하는 방식. 다음과 같은 규칙에 따라 데이터를 인코딩함.
+1. 단일 바이트 (0x00 ~ 0x7F) : 단일 바이트는 그대로 인코딩 된다.
+2. 짧은 문자열(0x00 ~ 0x37) : 문자열의 길이와 문자열 데이터를 결합하여 인코딩된다.
+3. 긴 문자열: 길이를 먼저 인코딩한 후 문자열 데이터를 인코딩한다.
+4. 리스트 : 리스트의 전체 길이를 먼저 인코딩하고  리스트의 각 항목을 순서대로 인코딩한다.
+- 노드 레코드의 표준 인코딩은 RLP 리스트 `[signature, seq, k, v, ...]` 이다. 하나의 노드 최대 인코딩 사이즈는 300 bytes이다. 이 이상은 거부해야함.
+- 레코드들은 다음과 같이 인코딩되고 서명된다 :
+
+  content   = [seq, k, v, ...]
+  signature = sign(content)
+  record    = [signature, seq, k, v, ...]
+
+## Text Encoding
+노드 레코드의 텍스트 형식은 RLP 형식의 base64 인코딩 방식이다. prefix로 'enr:' 을 사용한다.
+구현체들은 [URL-safe base64 alphabet] 사용하고 패딩 문자를 생략해야 한다.
+
+## "v4" Identity Scheme
+- `content`를 서명하기 위해 keccak256 해시함수 적용하여 서명 생성 -> 64-byte의 서명은 `r` 과 `s` 서명값으로 concatenation으로 인코딩된다.
