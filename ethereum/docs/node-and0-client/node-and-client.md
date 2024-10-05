@@ -40,6 +40,7 @@ client diversity : https://ethereum.org/en/developers/docs/nodes-and-clients/cli
 ...
 
 
+
 # Why should I run an Ethereum node?
 
 노드를 운영하는것은 이더리움 네트워크를 좀더 강력하고 탈중앙성을 유지함과 동시에, 이더리움 네트워크를 개인적으로,
