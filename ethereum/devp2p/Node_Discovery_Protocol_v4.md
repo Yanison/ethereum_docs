@@ -27,10 +27,12 @@ Discovery Protocol의 참여자들은 최신정보를 포함하는 ENR을 유지
 
 ## Kademlia Table
 
+<!--
 Nodes in the Discovery Protocol keep information about other nodes in their neighborhood.
 Neighbor nodes are stored in a routing table consisting of 'k-buckets'. For each `i` in
 `0 ≤ i < 256`, every node keeps a k-bucket of neighbors with distance
 `2^i ≤ distance < 2^(i+1)` from itself.
+-->
 
 Discovery Protocol의 노드는 이웃에 있는 다른 노드들의 정보를 유지합니다.
 이웃 노드는 'k-buckets' 으로 구성된 라우팅 테이블에 저장됩니다.
@@ -40,9 +42,11 @@ k-buckets은 Kademlia 네트워크에서 사용하는 데이터 구조입니다.
 `0 ≤ i < 256` 사이에 있는 각각의 i에 대해, 모든 노드는 자신으로부터 `2^i ≤ distance < 2^(i+1)`
 만큼 거리를 유지하며 이웃의 k-bucket을 유지합니다.
 
+<!--
 The Node Discovery Protocol uses `k = 16`, i.e. every k-bucket contains up to 16 node
 entries. The entries are sorted by time last seen — least-recently seen node at the head,
 most-recently seen at the tail.
+-->
 
 Node Discovery Protocol은 `k = 16`을 사용합니다. k는 k-bucket에 최대로 저장되는 노드의 수를 의미합니다.
 즉, `k = 16`은 각 k-bucket은 최대 16개의 노드 엔트리를 포함합니다.
@@ -55,11 +59,12 @@ k-bucket에 있는 노드 엔트리는 마지막으로 조회한 시간 기준�
 가장 마지막으로 조회된 노드인 N₂로부터 응답이 없다면 해당 노드는 죽은것으로 간주되고 지워집니다, 그리고 새로운 노드 N₁는 bucket의 맨 뒤에 추가됩니다.
 
 ## Endpoint Proof
-
+<!--
 To prevent traffic amplification attacks, implementations must verify that the sender of a
 query participates in the discovery protocol. The sender of a packet is considered
 verified if it has sent a valid [Pong] response with matching ping hash within the last 12
 hours.
+-->
 
 트래픽 증폭 공격을 방지하기 위해 구현체는 반드시 발신자의 쿼리가 discovery protocol에 참여하고 있는지 검증해야 합니다.
 패킷 발신자는 12시간 이내로 유효한 [Pong] 응답을 보냈는지, 그리고 해당 응답값이 ping 해시값과 매칭하여 검증되어졌는디 확인되어야 합니다.
@@ -74,10 +79,12 @@ initiator가 타겟으로 삼은 가장 가까운 `k`개의 노드중 아직 쿼
 `a`에게 [FindNode] 패킷을 재전송합니다. 재빨리 응답하지 못한 노드들은 그들이 응답하거나 응답하지 않으면
 `k` 고려대상에서 지워집니다.
 
+<!--
 If a round of FindNode queries fails to return a node any closer than the closest already
 seen, the initiator resends the find node to all of the `k` closest nodes it has not
 already queried. The lookup terminates when the initiator has queried and gotten responses
 from the `k` closest nodes it has seen.
+-->
 
 FindNode 쿼리 단계에서 먼저 찾았던 가까운 노드보다 더 가까운 노드를 찾지 못하면,
 lookup initiator는 아직 쿼리되지 않았으며 가장 가까운 `k` 모두에게 FindNode를 재전송합니다.
@@ -93,22 +100,23 @@ Node discovery 메시지는 UDP 데이터그램으로서 보내집니다. 모든
     packet-header = hash || signature || packet-type
     hash = keccak256(signature || packet-type || packet-data)
     signature = sign(packet-type || packet-data)
-
+<!--
 The `hash` exists to make the packet format recognizable when running multiple protocols
 on the same UDP port. It serves no other purpose.
-`hash`는 동일한 UDP 포트에서 다양한 프로토콜이 실핼될때 패킷 형식을 구분하기 위해 존재합니다.
-그것 외엔 다른 목적은 없습니다.
 
 Every packet is signed by the node's identity key. The `signature` is encoded as a byte
 array of length 65 as the concatenation of the signature values `r`, `s` and the 'recovery
 id' `v`.
 
-모든 패킷은 노드의 고유키로 서명됩니다. `signature`은 서명값에서 `r`, `s` 와 복구 ID인 `v`을 연결하여 65길이의 바이트 배열로 인코딩 됩니다.
-
 The `packet-type` is a single byte defining the type of message. Valid packet types are
 listed below. Data after the header is specific to the packet type and is encoded as an
 RLP list. Implementations should ignore any additional elements in the `packet-data` list
 as well as any extra data after the list.
+-->
+`hash`는 동일한 UDP 포트에서 다양한 프로토콜이 실핼될때 패킷 형식을 구분하기 위해 존재합니다.
+그것 외엔 다른 목적은 없습니다.
+
+모든 패킷은 노드의 고유키로 서명됩니다. `signature`은 서명값에서 `r`, `s` 와 복구 ID인 `v`을 연결하여 65길이의 바이트 배열로 인코딩 됩니다.
 
 `packet-type`은 메시지의 타입을 결정하는 단일 byte 입니다. 유효한 패킷 타입은 아래에 정리되어있습니다.
 헤더 다음의 데이터는 패킷 타입에 따라 다르며 RLP 리스트로 인코딩됩니다.
@@ -121,26 +129,27 @@ as well as any extra data after the list.
     from = [sender-ip, sender-udp-port, sender-tcp-port]
     to = [recipient-ip, recipient-udp-port, 0]
 
+<!--
 The `expiration` field is an absolute UNIX time stamp. Packets containing a time stamp
 that lies in the past are expired may not be processed.
 
-`expiration` 필드는 유닉스 time stamp 입니다. 패킷은 과거에 파기되어 처리되지 않은 time stamp을 포함하고 있습니다.
-
 The `enr-seq` field is the current ENR sequence number of the sender. This field is
 optional.
-
-`enr-seq` 필드는 최근 발신자의 ENR 시퀀스 숫자입니다. 해당 필드는 선택사항입니다.
 
 When a ping packet is received, the recipient should reply with a [Pong] packet. It may
 also consider the sender for addition into the local table. Implementations should ignore
 any mismatches in version.
 
+If no communication with the sender has occurred within the last 12h, a ping should be
+sent in addition to pong in order to receive an endpoint proof.
+-->
+`expiration` 필드는 유닉스 time stamp 입니다. 패킷은 과거에 파기되어 처리되지 않은 time stamp을 포함하고 있습니다.
+
+`enr-seq` 필드는 최근 발신자의 ENR 시퀀스 숫자입니다. 해당 필드는 선택사항입니다.
+
 ping 패킷을 받을때, 수신자는 반드시 [Pong] 패킷으로 응답해야 합니다.
 로컬 테이블에 발신자를 추가하는 것 또한 고려될 수 있습니다.
 구현은 버전이 불일치하면 무시해야합니다.
-
-If no communication with the sender has occurred within the last 12h, a ping should be
-sent in addition to pong in order to receive an endpoint proof.
 
 만약 발신자와 소통이 마지막 12시간 이내로 발생되지 않으면, 
 ping은 endpoint 증명을 받기 위해 pong을 더하여 보내져야 합니다. 
@@ -149,35 +158,32 @@ ping은 endpoint 증명을 받기 위해 pong을 더하여 보내져야 합니�
 
     packet-data = [to, ping-hash, expiration, enr-seq, ...]
 
+<!--
 Pong is the reply to ping.
-Pong은 ping에 대한 응답입니다.
-
 `ping-hash` should be equal to `hash` of the corresponding ping packet. Implementations
 should ignore unsolicited pong packets that do not contain the hash of the most recent
 ping packet.
-
-`ping-hash`는 본인과 대응되는 ping 패킷의 `hash`값과 같아야 합니다.
-구현은 가장 최근의 ping 패킷의 해시값을 포함하고 있지 않고 요청되지 않은 pong 패킷을 무시해야 합니다.
-
 The `enr-seq` field is the current ENR sequence number of the sender. This field is
 optional.
-
+-->
+Pong은 ping에 대한 응답입니다.
+`ping-hash`는 본인과 대응되는 ping 패킷의 `hash`값과 같아야 합니다.
+구현은 가장 최근의 ping 패킷의 해시값을 포함하고 있지 않고 요청되지 않은 pong 패킷을 무시해야 합니다.
 `enr-seq` 필드는 최근 발신자의 ENR 시퀀스 번호입니다. 해당 필드는 선택사항입니다.
 
 ### FindNode Packet (0x03)
 
     packet-data = [target, expiration, ...]
-
+<!--
 A FindNode packet requests information about nodes close to `target`. The `target` is a
 64-byte secp256k1 public key. When FindNode is received, the recipient should reply with
 [Neighbors] packets containing the closest 16 nodes to target found in its local table.
 
-FindNode 패킷은 `target`과 가까운 노드들에 대한 정보를 요청합니다. `target`은 64바이트 secp256k1 공개키입니다.
-FindNode를 전달받을때 수신자는 수신자의 로컬 테이블에서 찾은 타겟에 가장 가까운 16개의 노드들을 담은 [Neighbors] 패킷을 응답해야 합니다.
-
 To guard against traffic amplification attacks, Neighbors replies should only be sent if
 the sender of FindNode has been verified by the endpoint proof procedure.
-
+-->
+FindNode 패킷은 `target`과 가까운 노드들에 대한 정보를 요청합니다. `target`은 64바이트 secp256k1 공개키입니다.
+FindNode를 전달받을때 수신자는 수신자의 로컬 테이블에서 찾은 타겟에 가장 가까운 16개의 노드들을 담은 [Neighbors] 패킷을 응답해야 합니다.
 트래픽 증폭 공격을 방어하기 위해 FindNode의 발신자가 endpoint 증명 절차에 의해 검증되었을때에만 응답 패킷인 Neighbors 패킷이 전송되어야 합니다.
 
 ### Neighbors Packet (0x04)
@@ -191,16 +197,15 @@ Neighbors는 [FindNode]에 대한 응답입니다.
 
     packet-data = [expiration]
 
+<!--
 When a packet of this type is received, the node should reply with an ENRResponse packet
 containing the current version of its [node record].
-
-어떤 노드가 해당 타입에 대한 패킷을 받았을때, 노드는 최근 버전의 [node record] ENRResponse 패킷으로 응답해야 합니다.
-
 To guard against amplification attacks, the sender of ENRRequest should have replied to a
 ping packet recently (just like for FindNode). The `expiration` field, a UNIX timestamp,
 should be handled as for all other existing packets i.e. no reply should be sent if it
 refers to a time in the past.
-
+-->
+어떤 노드가 해당 타입에 대한 패킷을 받았을때, 노드는 최근 버전의 [node record] ENRResponse 패킷으로 응답해야 합니다.
 트래픽 증폭 공격을 방어하기 위해서는 ENRRequest 발신자는 최근의 ping 패킷으로 응답해야 합니다.(이는 FindNode와 동일합니다.)
 `expiration` 필드는 a UNIX timestamp 입니다. 그리고 `expiration` 필드는 존재하는 다른 모든 패킷과 동일하게 다루어져야 합니다.
 
@@ -208,13 +213,13 @@ refers to a time in the past.
 
     packet-data = [request-hash, ENR]
 
+<!--
+The recipient of the packet should verify that the node record is signed by the public key
+which signed the response packet.
+-->
 이 패킷은 ENRRequest에 대한 응답입니다.
 - `request-hash`은 응답으로 보내질 ENRRequest 패킷에대한 해시값입니다.
 - `ENR`은 노드 레코드입니다.
-
-The recipient of the packet should verify that the node record is signed by the public key
-which signed the response packet.
-
 패킷의 수신자는 노드 레코드가 응답 패킷에서 서명받은 공개키로 노드기록의 서명도 검증해야합니다.
 다시 말해서, 노드 기록이 올바르게 서명되었는지 확인하기 위해, 
 그 서명은 응답 패킷을 서명한 것과 동일한 공개 키에 의해 서명된 것이어야 한다는 뜻입니다.
@@ -222,12 +227,12 @@ which signed the response packet.
 # Change Log
 
 ## Known Issues in the Current Version
-
+<!--
 The `expiration` field present in all packets is supposed to prevent packet replay. Since
 it is an absolute time stamp, the node's clock must be accurate to verify it correctly.
 Since the protocol's launch in 2016 we have received countless reports about connectivity
 issues related to the user's clock being wrong.
-
+-->
 모든 패킷에서 보여지는 `expiration` 필드는 패킷 재전송을 방지하기 위해 존재합니다.
 절대시간 타임스탬프 이기때문에 노드의 clock은 올바르게 검증되기 위해 정확해야 합니다.
 프로토콜이 2016년에 개시되면서부터 사용자들의 clock 오류과 관련된 연결이슈들을 수없이 받아왔습니다. 
@@ -371,3 +376,21 @@ list elements)를 무시하도록 지정했습니다.
 [EIP-8]: https://eips.ethereum.org/EIPS/eip-8
 [EIP-868]: https://eips.ethereum.org/EIPS/eip-868
 [node record]: ./enr.md
+
+
+
+# 요약
+
+## RLPx Transport Protocol
+TCP 베이스의 전송 프로토콜, 이더리움 노드끼리 통신하기 위해 사용됨.
+노드끼리 주고받는 메시지를 암호화 하는 여러 기능들을 사용할 수 있음.
+## ECIES Encryption
+RLPx Transport Protocol 에서 사용되는 암호화 방식.
+## Node Identity
+각 노드는 secp256k1 타원곡선 암호학 알고리즘을 사용한 키값으로 구성된 identity를 가지고 있음.
+노드의 공개 키는 `node ID` 또는 식별자로서 사용됨.
+## Initial Handshake
+노드간의 연결을 설정하기 위한 초기 핸드셰이크 과정.
+접속을 하는 peer를 initiator, 접속을 받는 peer를 receiver라고 함.
+한번 접속했던 경우 known peer라고 하고 처음 접속하는 peer를 new peer라고 함.
+한번 접속했던 경우 session token을 보관하는데, 같은 키를 계속 사용하진 않고 접속할 때마다 이 키를 기반으로 새로운 키를 생성함.

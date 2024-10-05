@@ -115,16 +115,16 @@ Kademlia 구조는 노드의 분산 인덱스와 low diameter 토플로지 구�
 
 
 ## Rationale
-
-The format is meant to suit future needs in two ways:
 이 포맷은 미래의 요구사항을 충족시키기 위해 두가지 방법으로 사용된다.
 
 - 새로운 키/값 쌍 추가 : 이것은 항상 가능하고 구현체가 합의하는것을 요구하지 않는다. 존재하는 클라이언트는
   어떤 키/값 쌍이든 그들이 내용을 해석할 수 있는지와 상관없이 받아들일 것이다.
+<!--
 - Adding identity schemes: these need implementation consensus because the network won't
   accept the signature otherwise. To introduce a new identity scheme, propose an EIP and
   get it implemented. The scheme can be used as soon as most clients accept it.
-- 새로운 identity scheme 추가 : 이것은 구현체의 합이가 필요합니다 왜냐하면 해당 네트워크가 이 서명을 
+-->
+- 새로운 identity scheme 추가 : 이것은 구현체의 합의가 필요합니다 왜냐하면 해당 네트워크가 이 서명을 
   받아들이지 않을수도 있기 때문입니다. 새로운 identity scheme을 도입하기 위해, EIP를 제안하고 구현해야합니다.
   대부분의 클라이언트가 이를 받아들이면 이 scheme을 사용할 수 있습니다.
 
@@ -155,7 +155,6 @@ IPv4, IPv6 두가지 방식으로 주소 타입으로 선언하는것은 노드�
 
     enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjzCBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8
 
-The record is signed using the "v4" identity scheme using sequence number `1` and this private key:
 해당 레코드는 `v4`identity scheme 를 사용하려 서명되었습니다. <br> 
 그리고 시퀀스 번호는 `1`을 사용하고 다음은 이 레코드의 개인키입니다 :
 
@@ -179,13 +178,14 @@ RLP 구조의 레코드는 다음과 같습니다 :
 [EIP-778]: https://eips.ethereum.org/EIPS/eip-778
 [URL-safe base64 alphabet]: https://tools.ietf.org/html/rfc4648#section-5
 
-
+<!--
 # 요약
 ## Ethereum Node Records
 - p2p 연결 정보를 위한 오픈 포멧
 - 노드의 네트워크의 엔드포인트를 담고있음
 - 그리고 다른 노드들과 연결여부를 결정하는 정보들을 담고 있음
 - [EIP-778]에서 처음 제안되었다.
+- 
 ## Record Structure
 - `signature` : 레코드 내용의 암호화 서명
 - 하나의 레코드 서명은 *identity scheme* 에 따라 검증되고 생성된다. *identity scheme* 는 DHT에서 노드의 주소를 도출하는 담당을한다. 노드 기록들을 구성하는 내용으로 해시함수에 입력하여 얻은 값을 주소값으로 사용할 수 있다.
@@ -222,3 +222,4 @@ RLP 구조의 레코드는 다음과 같습니다 :
 
 ## "v4" Identity Scheme
 - `content`를 서명하기 위해 keccak256 해시함수 적용하여 서명 생성 -> 64-byte의 서명은 `r` 과 `s` 서명값으로 concatenation으로 인코딩된다.
+-->

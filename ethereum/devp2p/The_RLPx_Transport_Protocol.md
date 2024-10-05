@@ -570,3 +570,34 @@ Creative Commons Attribution-NonCommercial-ShareAlike
 [EIP-706]: https://eips.ethereum.org/EIPS/eip-706
 [RLP]: https://ethereum.org/en/developers/docs/data-structures-and-encoding/rlp
 [snappy format]: https://github.com/google/snappy/blob/master/format_description.txt
+
+
+#요약
+
+## RLPx Transport Protocol
+이더리움 노드끼리 통신하기 위해 사용됨.
+메시지들을 암호화하는 여러 기능들을 지원함
+### ECIES Encryption
+RLPx handshake에서 사용되는 암호화 방식입니다.
+### Node Identity
+모든 암호학적 연산은 secp256k1 타원곡선을 기반으로 합니다.
+### Initial Handshake
+RLPx 연결은 TCP 연결이 생성되고 추가 암호화 및 인증 통신을 위해 임시의 키 구성요소(key material)에 합의함으로써 수립됩니다.
+키 구성요소(key material)은 ECIES Encryption을 사용하여 생성됩니다.
+순서
+1. initiator는 수신자에게 연결하고 `auth` 메시지를 보냅니다.
+2. 수신자가 수락하면, 메시시를 복호화 하고 `auth`를 검증합니다.
+3. 수신자는 `auth-ack` 메시지를 생성합니다.
+4. 수신자는 비밀키를 얻고 첫번째 암호화 frame을 보냅니다. 이 frame은 [Hello] 메시지를 포함합니다.
+5. initiator는 `auth-ack`을 받고 비밀키를 얻습니다.
+6. initiator는 첫번째 암호화 frame을 보냅니다. 이 frame은 initiator [Hello] 메시지를 포함합니다.
+7. 수신자는 첫번째 암호화 프래임을 수신받고 인증합니다.
+8. initiator는 첫번째 암호화 프래임을 수신받고 인증합니다.
+9. 만약 첫번째 암호화 frame의 MAC이 양방향에서 유효하면 cryptographic handshake가 완료됩니다.
+
+### Framing
+하나의 프레임은 단일 암호화 메시지를 가지며 이 메시지는 capability에 속합니다.
+프레임화의 목적
+1. 단일 연결위에서 여러 기능을 다중화
+2. 데이터 스트림이 암호화되고 인증되는것을 지원
+3. 지속적인 메시지 인증 코드를 위한 합리적인 경계점을 제공

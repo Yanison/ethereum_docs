@@ -56,7 +56,7 @@ TXT 레코드는 텍스트 정보를 포함하는 레코드 유형인데, [SPF(S
 
 where
 
-- `enr-root` 와 `link-root` 노드와 링크 서브트리를 포함하는 서브트리의 루트 해시를 참조합니다.
+- `enr-root` 와 `link-root`는 링크 서브트리를 포함하는 서브트리의 루트 해시와 링크 서브트리를 참조합니다.
 - `sequence-number`는 트리의 시퀸스 숫자를 업데이트 합니다, 10진수 정수입니다.
 - `signature`는 기록 내용의 keccak256 해시위에 65-byte의 secp256k1 EC 서명되어진 것 입니다.
   `sig=` 부분을 제외하고 URL-safe base64로 인코딩되어 있습니다.
@@ -97,9 +97,6 @@ mynodes.org라는 DNS 이름에서 노드를 찾는다고 가정하면 아래의
 2. 루트노드에서 알려진 공개키에 대하여 서명을 검증하고 시퀀스 숫자가 해당 이름에서 이전에 본 숫자보다 크거나 같은지 확인합니다.
 3. 서브도매인 해시의 TXT 기록을 해석해야 합니다 예를들어 "CFZUWDU7JNQR4VTCZVOJZ5ROV4.mynodes.org" 를 해석하고
    해당 해시와 내용이 일치하는지 검증해야합니다.
-4. The next step depends on the entry type found:
-    - for `enrtree-branch`: parse the list of hashes and continue resolving them (step 3).
-    - for `enr`: decode, verify the node record and import it to local node storage.
 4. 다은 단계는 주어진 엔트리 유형에 따라 달라집니다.
    - `enrtree-branch`의 경우 : 해시들의 리스트를 파싱하고 해시들을 계속 해석해야합니다.(step3)
    - `enr`의 경우 : 디코딩해야 합니다, 노드레코드를 검증한 후 로컬 노드 스토리지에 추가(import)해야 합니다. 
